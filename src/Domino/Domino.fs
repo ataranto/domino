@@ -1,5 +1,4 @@
-﻿namespace Domino
+﻿module Domino
 
-module Say =
-    let hello name =
-        printfn "Hello %s" name
+let hello name =
+    name |> sprintf "Hello %s"

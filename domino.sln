@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D8DF7474-DAE
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Domino", "src\Domino\Domino.fsproj", "{930A2C8B-2F3F-4220-86F4-9470587C0C6B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{111BB58F-0E27-47BD-8469-FAD01BF6D3E8}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Domino.Tests", "test\Domino.Tests\Domino.Tests.fsproj", "{A2C91412-D089-4EB5-894F-7E0E9C4C725E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,8 +36,21 @@ Global
 		{930A2C8B-2F3F-4220-86F4-9470587C0C6B}.Release|x64.Build.0 = Release|Any CPU
 		{930A2C8B-2F3F-4220-86F4-9470587C0C6B}.Release|x86.ActiveCfg = Release|Any CPU
 		{930A2C8B-2F3F-4220-86F4-9470587C0C6B}.Release|x86.Build.0 = Release|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Debug|x64.Build.0 = Debug|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Debug|x86.Build.0 = Debug|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Release|x64.ActiveCfg = Release|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Release|x64.Build.0 = Release|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Release|x86.ActiveCfg = Release|Any CPU
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{930A2C8B-2F3F-4220-86F4-9470587C0C6B} = {D8DF7474-DAEC-4A28-A944-29C015EC61F0}
+		{A2C91412-D089-4EB5-894F-7E0E9C4C725E} = {111BB58F-0E27-47BD-8469-FAD01BF6D3E8}
 	EndGlobalSection
 EndGlobal
