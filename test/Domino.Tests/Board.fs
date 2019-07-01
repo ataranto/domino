@@ -151,3 +151,69 @@ module actions =
         |> lead
         |> actions tiles
         |> should be FsUnit.CustomMatchers.Empty
+
+module score =
+    [<Fact>]
+    let ``when no tiles have been played, the score is 0`` () =
+        Empty |> score |> should equal 0
+
+    [<Fact>]
+    let ``when the first tile played is a double 5, the score is 10`` () =
+        Tile (5, 5) |> lead |> score |> should equal 10
+
+    [<Fact>]
+    let ``when the spinner is played first, it is counted correctly`` () =
+        let tile = Tile (6, 6)
+
+        [
+            attach (Tile (3, 6)) tile
+            attach (Tile (2, 6)) tile
+            attach (Tile (5, 6)) tile
+        ]
+        |> List.scan (fun tree attach -> attach tree) (tile |> lead)
+        |> List.map score
+        |> should equal [0; 15; 5; 10]
+
+    [<Fact>]
+    let ``when the spinner is not played first, it is counted correctly`` () =
+        let tile = Tile (3, 6)
+
+        [
+            attach (Tile (6, 6)) tile
+            attach (Tile (2, 6)) (Tile (6, 6))
+            attach (Tile (5, 6)) (Tile (6, 6))
+        ]
+        |> List.scan (fun tree attach -> attach tree) (tile |> lead)
+        |> List.map score
+        |> should equal [0; 15; 5; 10]
+
+    [<Fact>]
+    let ``sequence 1 is scored correctly`` () =
+        let tile = Tile (3, 6)
+
+        [
+            attach (Tile (6, 6)) tile
+            attach (Tile (3, 4)) tile
+            attach (Tile (4, 4)) (Tile (3, 4))
+        ]
+        |> List.scan (fun board attach -> attach board) (tile |> lead)
+        |> List.map score
+        |> should equal [0; 15; 0; 20]
+
+    [<Fact>]
+    let ``sequence 2 is scored correctly`` () =
+        let tile = Tile (1, 4)
+
+        [
+            attach (Tile (1, 1)) tile
+            attach (Tile (4, 4)) tile
+            attach (Tile (3, 4)) (Tile (4, 4))
+            attach (Tile (1, 2)) (Tile (1, 1))
+            attach (Tile (1, 5)) (Tile (1, 1))
+            attach (Tile (5, 5)) (Tile (1, 5))
+            attach (Tile (0, 5)) (Tile (5, 5))
+            attach (Tile (1, 3)) (Tile (1, 1))
+        ]
+        |> List.scan (fun board attach -> attach board) (tile |> lead)
+        |> List.map score
+        |> should equal [5; 0; 10; 5; 5; 10; 15; 5; 0]

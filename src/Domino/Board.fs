@@ -85,3 +85,31 @@ module Board =
                     None
             )
             |> List.distinct
+
+    let rec private count tree =
+        let value = function
+            | value, Empty -> value
+            | _, tree      -> tree |> count
+        match tree with
+        | Empty ->
+            0
+        | Node (_, edges) when edges.Length > 2 ->
+            // spinner
+            edges
+            |> List.partition (snd >> (=) Empty)
+            |> fun (empty, node) ->
+                empty
+                |> List.take (if empty.Length > 2 then 2 else 0)
+                |> List.append node
+                |> List.sumBy value
+        | Node (Tile (x, y), [_, Empty]) when x = y ->
+            // double
+            x + y
+        | Node (_, edges) ->
+            edges
+            |> List.sumBy value
+
+    let score tree =
+        tree
+        |> count
+        |> fun sum -> if sum % 5 = 0 then sum else 0

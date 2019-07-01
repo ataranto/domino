@@ -3,10 +3,8 @@
 
 open Domino
 
-let tree =
-    Tile (0, 1)
+let score =
+    Tile (4, 5)
     |> Board.lead
-    |> Board.attach (Tile (0, 2)) (Tile (0, 1))
-    |> Board.attach (Tile (1, 6)) (Tile (0, 1))
-
-    |> Board.actions [Tile (6, 6)]
+    |> Board.attach (Tile (5, 6)) (Tile (4, 5))
+    |> Board.score
