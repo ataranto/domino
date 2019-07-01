@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <Compile Include="Tile.fs" />
+    <Compile Include="Board.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

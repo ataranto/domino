@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="Tile.fs" />
+    <Compile Include="Board.fs" />
   </ItemGroup>
 
 </Project>

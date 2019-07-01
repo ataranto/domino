@@ -6,6 +6,5 @@ open FsUnit.Xunit
 open Domino
 
 [<Fact>]
-let ``foo`` () =
-    let tile = Tile (0, 0)
-    tile |> Tile.values |> should equal [0; 0]
+let ``values returns the tile values as a list`` () =
+    Tile (0, 0) |> Tile.values |> should equal [0; 0]
