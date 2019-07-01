@@ -119,3 +119,35 @@ module attach =
             0, Node (Tile (0,2), [2, Empty])
             0, Node (Tile (0,1), [1, Empty])
         ]))
+
+module actions =
+    [<Fact>]
+    let ``when the board is empty, any tile can be played to lead`` () =
+        let tile = Tile (0, 0)
+        let tiles = tile |> List.singleton
+
+        Empty
+        |> actions tiles
+        |> should equal [Lead tile]
+
+    [<Fact>]
+    let ``when a tile has an empty edge, a matching tile can be attached`` () =
+        let target = Tile (0, 0)
+        let tile = Tile (0, 1)
+        let tiles = tile |> List.singleton
+
+        target
+        |> lead
+        |> actions tiles
+        |> should equal [Attach (tile, target)]
+
+    [<Fact>]
+    let ``when none of the tiles may be played, an empty list is returned`` () =
+        let target = Tile (0, 0)
+        let tile = Tile (1, 1)
+        let tiles = tile |> List.singleton
+
+        target
+        |> lead
+        |> actions tiles
+        |> should be FsUnit.CustomMatchers.Empty

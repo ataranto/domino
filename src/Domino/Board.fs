@@ -4,6 +4,10 @@ type Tree =
     | Empty
     | Node of Tile * (int * Tree) list
 
+type Action =
+    | Lead of Tile
+    | Attach of Tile * Tile
+
 module Board =
     // http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list
     let rec private remove x = function
@@ -14,13 +18,11 @@ module Board =
     let private empty values =
         values |> List.map (fun value -> value, Empty)
 
-    let rec private intersect = function
-        | _, [] ->
-            None
-        | Tile (x, y), (value, Empty)::_ when value = x || value = y ->
-            Some value
-        | tile, _::edges ->
-            (tile, edges) |> intersect
+    let lead = function
+        | Tile (x, y) as tile when x = y ->
+            Node (tile, x |> List.replicate 4 |> empty)
+        | tile ->
+            Node (tile, tile |> Tile.values |> empty)
 
     let rec private spinner = function
         | Empty ->
@@ -30,11 +32,13 @@ module Board =
         | Node (_, edges) ->
             edges |> List.map snd |> List.tryPick spinner
 
-    let lead = function
-        | Tile (x, y) as tile when x = y ->
-            Node (tile, x |> List.replicate 4 |> empty)
-        | tile ->
-            Node (tile, tile |> Tile.values |> empty)
+    let rec private intersect = function
+        | _, [] ->
+            None
+        | Tile (x, y), (value, Empty)::_ when value = x || value = y ->
+            Some value
+        | tile, _::edges ->
+            (tile, edges) |> intersect
 
     let attach tile target tree =
         let create value =
@@ -55,3 +59,29 @@ module Board =
             | Node (t, edges) ->
                 Node (t, edges |> List.map (fun (v, tree) -> v, tree |> loop))
         tree |> loop
+
+    let private edges tree =
+        let rec loop result = function
+            | Empty -> result
+            | Node (tile, edges') ->
+                edges'
+                |> List.collect (function
+                    | value, Empty -> (tile, value)::result
+                    | _, tree      -> tree |> loop result
+                )
+        tree |> loop List.empty
+
+    let actions tiles = function
+        | Empty ->
+            tiles |> List.map Lead
+        | node ->
+            node
+            |> edges
+            |> List.allPairs tiles
+            |> List.choose (function
+                | Tile (x, y), (tile, value) when x = value || y = value ->
+                    Some (Attach (Tile (x, y), tile))
+                | _ ->
+                    None
+            )
+            |> List.distinct
