@@ -63,6 +63,11 @@ module Events =
         Boneyard = List.empty
     }
 
+    let update player f state =
+        state.Players
+        |> Map.find player
+        |> fun ps -> state.Players |> Map.add player (ps |> f)
+
     module private Apply =
         let start players =
             let create player =
@@ -89,13 +94,12 @@ module Events =
             }
 
         let draw player tile state =
+            let players =
+                state
+                |> update player (fun ps -> { ps with Tiles = tile::ps.Tiles })
             { state with
                 Boneyard = state.Boneyard |> remove tile
-                Players =
-                    state.Players
-                    |> Map.find player
-                    |> fun ps -> { ps with Tiles = tile::ps.Tiles }
-                    |> fun ps -> state.Players |> Map.add player ps
+                Players = players
             }
 
         let play player action points state =
@@ -105,27 +109,27 @@ module Events =
                     tile, tile |> Board.lead
                 | Attach (tile, target) ->
                     tile, state.Board |> Board.attach tile target
+            let players =
+                state
+                |> update player (fun ps ->
+                    { ps with
+                        Tiles = ps.Tiles |> remove tile
+                        Score = ps.Score + points
+                    }
+                )
 
             { state with
                 Board = board
-                Players =
-                    state.Players
-                    |> Map.find player
-                    |> fun ps ->
-                        { ps with
-                            Tiles = ps.Tiles |> remove tile
-                            Score = ps.Score + points }
-                    |> fun ps -> state.Players |> Map.add player ps
+                Players = players
             }
 
         let tally player points state =
-            { state with
-                Players =
-                    state.Players
-                    |> Map.find player
-                    |> fun ps -> { ps with Score = ps.Score + points }
-                    |> fun ps -> state.Players |> Map.add player ps
-            }
+            let players =
+                state
+                |> update player (fun ps ->
+                    { ps with Score = ps.Score + points }
+                )
+            { state with Players = players }
 
     let apply state = function
         | GameStarted players ->

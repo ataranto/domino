@@ -31,7 +31,6 @@ module zero =
         |> fun state -> state.Board
         |> should equal Empty
 
-
     [<Fact>]
     let ``the zero state Bonyard value is an empty list`` () =
         zero
@@ -68,9 +67,29 @@ module integration =
             |> function
                 | Error _ -> failwith "execute error"
                 | Ok es   -> (events @ es) |> run
+        | _ ->
+            failwith "unknown state"
 
     [<Fact>]
-    let ``a four player game can be completed and replayed`` () =
+    let ``a 2 player game can be completed and replayed`` () =
+        let winner, events =
+            players
+            |> Seq.take 2
+            |> Seq.toList
+            |> start
+            |> run
+
+        printfn "\nwinner 2: %A" winner.Name
+        printfn "events  : %d" events.Length
+
+        events
+        |> List.fold apply zero
+        |> function
+            | { Winner = Some player } -> player |> should equal winner
+            | _                        -> failwith "mismatch"
+
+    [<Fact>]
+    let ``a 4 player game can be completed and replayed`` () =
         let winner, events =
             players
             |> Seq.take 4
@@ -78,11 +97,11 @@ module integration =
             |> start
             |> run
 
-        printfn "winner 4: %A" winner.Name
+        printfn "\nwinner 4: %A" winner.Name
         printfn "events  : %d" events.Length
 
         events
         |> List.fold apply zero
         |> function
-        | { Winner = Some player } -> player |> should equal winner
-        | _                        -> failwith "mismatch"
+            | { Winner = Some player } -> player |> should equal winner
+            | _                        -> failwith "mismatch"
