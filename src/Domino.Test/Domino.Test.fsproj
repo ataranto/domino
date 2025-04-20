@@ -14,6 +14,7 @@
     <Compile Include="Tile.fs" />
     <Compile Include="Board.fs" />
     <Compile Include="Events.fs" />
+    <Compile Include="Rules.fs" />
     <Compile Include="Game.fs" />
   </ItemGroup>
 
