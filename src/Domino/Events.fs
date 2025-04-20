@@ -1,22 +1,15 @@
 namespace Domino
 
-type Player = {
-    Id: int
-    Name: string
-}
+type Player = { Id: int; Name: string }
 
-type PlayerState = {
-    Tiles: Tile list
-    Score: int
-}
+type PlayerState = { Tiles: Tile list; Score: int }
 
-type State = {
-    Players: Map<Player, PlayerState>
-    Active: Player option
-    Winner: Player option
-    Board: Tree
-    Boneyard: Tile list
-}
+type State =
+    { Players: Map<Player, PlayerState>
+      Active: Player option
+      Winner: Player option
+      Board: Tree
+      Boneyard: Tile list }
 
 type Event =
     | GameStarted of Player list
@@ -42,26 +35,25 @@ module Events =
         xs
         |> List.windowed 2
         |> List.tryPick (function
-            | [left; right] when x = left -> Some right
-            | _                           -> None
-        )
+            | [ left; right ] when x = left -> Some right
+            | _ -> None)
         |> function
-            | Some (x) -> x
-            | _        -> xs |> List.head
+            | Some(x) -> x
+            | _ -> xs |> List.head
 
     // http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list
-    let rec private remove x = function
-        | x'::xs when x' = x -> xs
-        | x'::xs             -> x'::remove x xs
-        | []                 -> []
+    let rec private remove x =
+        function
+        | x' :: xs when x' = x -> xs
+        | x' :: xs -> x' :: remove x xs
+        | [] -> []
 
-    let zero = {
-        Players = Map.empty
-        Active = None
-        Winner = None
-        Board = Empty
-        Boneyard = List.empty
-    }
+    let zero =
+        { Players = Map.empty
+          Active = None
+          Winner = None
+          Board = Empty
+          Boneyard = List.empty }
 
     let update player f state =
         state.Players
@@ -72,9 +64,9 @@ module Events =
         let start players =
             let create player =
                 player, { Tiles = List.empty; Score = 0 }
+
             { zero with
-                Players = players |> List.map create |> Map.ofList
-            }
+                Players = players |> List.map create |> Map.ofList }
 
         let deal tiles state =
             { state with
@@ -84,86 +76,63 @@ module Events =
                     |> List.chunkBySize 7
                     |> List.take (state.Players |> Map.count)
                     |> List.zip (state.Players |> Map.toList)
-                    |> List.map (fun ((player, ps), tiles) ->
-                        player, { ps with Tiles = tiles }
-                    )
+                    |> List.map (fun ((player, ps), tiles) -> player, { ps with Tiles = tiles })
                     |> Map.ofList
-                Boneyard =
-                    tiles
-                    |> List.skip (state.Players |> Map.count |> (*) 7)
-            }
+                Boneyard = tiles |> List.skip (state.Players |> Map.count |> (*) 7) }
 
         let draw player tile state =
             let players =
-                state
-                |> update player (fun ps -> { ps with Tiles = tile::ps.Tiles })
+                state |> update player (fun ps -> { ps with Tiles = tile :: ps.Tiles })
+
             { state with
                 Boneyard = state.Boneyard |> remove tile
-                Players = players
-            }
+                Players = players }
 
         let play player action points state =
             let tile, board =
                 match action with
-                | Lead tile ->
-                    tile, tile |> Board.lead
-                | Attach (tile, target) ->
-                    tile, state.Board |> Board.attach tile target
+                | Lead tile -> tile, tile |> Board.lead
+                | Attach(tile, target) -> tile, state.Board |> Board.attach tile target
+
             let players =
                 state
                 |> update player (fun ps ->
                     { ps with
                         Tiles = ps.Tiles |> remove tile
-                        Score = ps.Score + points
-                    }
-                )
+                        Score = ps.Score + points })
 
             { state with
                 Board = board
-                Players = players
-            }
+                Players = players }
 
         let tally player points state =
             let players =
-                state
-                |> update player (fun ps ->
-                    { ps with Score = ps.Score + points }
-                )
+                state |> update player (fun ps -> { ps with Score = ps.Score + points })
+
             { state with Players = players }
 
-    let apply state = function
-        | GameStarted players ->
-            players |> Apply.start
-        | TilesShuffled tiles ->
-            state |> Apply.deal tiles
-        | TurnStarted player ->
-            { state with Active = Some player }
-        | TileDrawn (player, tile) ->
-            state |> Apply.draw player tile
-        | TurnBlocked _ ->
-            state
-        | TilePlayed (player, action, points) ->
-            state |> Apply.play player action points
-        | Domino (player, points)
-        | Blocked (player, points) ->
-            state |> Apply.tally player points
-        | GameWon player ->
-            { state with Winner = Some player }
+    let apply state =
+        function
+        | GameStarted players -> players |> Apply.start
+        | TilesShuffled tiles -> state |> Apply.deal tiles
+        | TurnStarted player -> { state with Active = Some player }
+        | TileDrawn(player, tile) -> state |> Apply.draw player tile
+        | TurnBlocked _ -> state
+        | TilePlayed(player, action, points) -> state |> Apply.play player action points
+        | Domino(player, points)
+        | Blocked(player, points) -> state |> Apply.tally player points
+        | GameWon player -> { state with Winner = Some player }
 
     let win player state =
         state.Players
         |> Map.find player
         |> function
-            | { Score = score } when score >= 150 ->
-                Some (GameWon player)
-            | _ ->
-                None
+            | { Score = score } when score >= 150 -> Some(GameWon player)
+            | _ -> None
 
     let total player state =
         state.Players
-        |> Map.map (fun _ { Tiles = tiles } ->
-            tiles |> List.collect Tile.values |> List.sum
-        )
+        |> Map.map (fun _ { Tiles = tiles } -> tiles |> List.collect Tile.values |> List.sum)
         |> Map.remove player
         |> Map.toList
         |> List.sumBy snd
@@ -173,10 +142,12 @@ module Events =
         let tiles =
             state.Players
             |> Map.find player
-            |> function { Tiles = tiles } -> tiles
+            |> function
+                | { Tiles = tiles } -> tiles
+
         match tiles with
-        | [] -> Domino (player, state |> total player) |> Some
-        | _  -> None
+        | [] -> Domino(player, state |> total player) |> Some
+        | _ -> None
 
     let blocked player state =
         let actions =
@@ -184,18 +155,19 @@ module Events =
             |> Map.toList
             |> List.map (fun (_, ps) -> ps.Tiles)
             |> List.collect (fun tiles -> state.Board |> Board.actions tiles)
+
         match actions with
-        | [] -> Blocked (player, state |> total player) |> Some
-        | _  -> None
+        | [] -> Blocked(player, state |> total player) |> Some
+        | _ -> None
 
     let tilesShuffled () =
-        Tile.tiles 6
-        |> shuffle
-        |> TilesShuffled
+        Tile.tiles 6 |> shuffle |> TilesShuffled
 
     let firstTurn state =
-        let weight = function
-            | Tile (x, y) -> x = y, x + y, max x y
+        let weight =
+            function
+            | Tile(x, y) -> x = y, x + y, max x y
+
         state.Players
         |> Map.toList
         |> List.maxBy (fun (_, ps) -> ps.Tiles |> List.maxBy weight)
@@ -203,75 +175,58 @@ module Events =
         |> TurnStarted
 
     let nextTurn player state =
-        state.Players
-        |> Map.toList
-        |> List.map fst
-        |> next player
-        |> TurnStarted
+        state.Players |> Map.toList |> List.map fst |> next player |> TurnStarted
 
     let sequence state event =
         let rec loop state events =
             let next event =
-                event::events
-                |> loop (event |> apply state)
+                event :: events |> loop (event |> apply state)
 
             match events with
-            | GameStarted _::_ ->
-                () |> tilesShuffled |> next
-            | [TilesShuffled _; GameStarted _] ->
-                state |> firstTurn |> next
-            | TurnStarted player::_
-            | TileDrawn (player, _)::_->
+            | GameStarted _ :: _ -> () |> tilesShuffled |> next
+            | [ TilesShuffled _; GameStarted _ ] -> state |> firstTurn |> next
+            | TurnStarted player :: _
+            | TileDrawn(player, _) :: _ ->
                 let tiles =
                     state.Players
                     |> Map.find player
-                    |> function { Tiles = tiles } -> tiles
-                let actions =
-                    state.Board
-                    |> Board.actions tiles
+                    |> function
+                        | { Tiles = tiles } -> tiles
+
+                let actions = state.Board |> Board.actions tiles
+
                 match actions, state.Boneyard with
                 | [], [] -> player |> TurnBlocked |> next
-                | [], _  -> TileDrawn (player, state.Boneyard |> List.head) |> next
-                | _      -> events
-            | TurnBlocked player::_ ->
-                state |> nextTurn player |> next
-            | TilePlayed (player, _, _)::_ ->
-                [win; domino; blocked]
+                | [], _ -> TileDrawn(player, state.Boneyard |> List.head) |> next
+                | _ -> events
+            | TurnBlocked player :: _ -> state |> nextTurn player |> next
+            | TilePlayed(player, _, _) :: _ ->
+                [ win; domino; blocked ]
                 |> List.tryPick (fun f -> state |> f player)
                 |> function
                     | Some event -> event
-                    | None       -> state |> nextTurn player
+                    | None -> state |> nextTurn player
                 |> next
-            | Domino (player, _)::_
-            | Blocked (player, _)::_ ->
+            | Domino(player, _) :: _
+            | Blocked(player, _) :: _ ->
                 match state |> win player with
                 | Some event -> event
-                | None       -> () |> tilesShuffled
+                | None -> () |> tilesShuffled
                 |> next
-            | _ ->
-                events
+            | _ -> events
 
-        event
-        |> List.singleton
-        |> loop (event |> apply state)
-        |> List.rev
+        event |> List.singleton |> loop (event |> apply state) |> List.rev
 
-    let start players =
-        GameStarted players
-        |> sequence zero
+    let start players = GameStarted players |> sequence zero
 
     let execute action state =
         match state.Active with
-        | None ->
-            Error "game not started"
+        | None -> Error "game not started"
         | Some player ->
             let event =
                 match action with
-                | Lead tile ->
-                    TilePlayed (player, action, Board.lead tile |> Board.score)
-                | Attach (tile, target) ->
-                    TilePlayed (player, action, state.Board |> Board.attach tile target |> Board.score)
+                | Lead tile -> TilePlayed(player, action, Board.lead tile |> Board.score)
+                | Attach(tile, target) ->
+                    TilePlayed(player, action, state.Board |> Board.attach tile target |> Board.score)
 
-            event
-            |> sequence state
-            |> Ok
+            event |> sequence state |> Ok

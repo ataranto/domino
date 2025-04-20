@@ -7,10 +7,7 @@ open Domino.Events
 let rec prompt player state =
     printfn ""
 
-    let tiles =
-        state.Players
-        |> Map.find player
-        |> fun ps -> ps.Tiles
+    let tiles = state.Players |> Map.find player |> (fun ps -> ps.Tiles)
 
     let actions =
         state.Board
@@ -19,27 +16,24 @@ let rec prompt player state =
             let score =
                 match action with
                 | Lead tile -> lead tile
-                | Attach (tile, target) -> state.Board |> attach tile target
+                | Attach(tile, target) -> state.Board |> attach tile target
                 |> score
-            score, action
-        )
+
+            score, action)
         |> List.sortDescending
 
     actions
     |> List.indexed
-    |> List.iter (fun (index, (score, action)) ->
-        printfn "[%d] [%02d] %A" index score action
-    )
+    |> List.iter (fun (index, (score, action)) -> printfn "[%d] [%02d] %A" index score action)
 
     printfn "%s Action: " player.Name
+
     match Console.ReadLine() |> Int32.TryParse with
     | true, c when c < actions.Length -> actions |> List.item c |> snd
-    | _                               -> state |> prompt player
+    | _ -> state |> prompt player
 
 let rec run events =
-    let state =
-        events
-        |> List.fold apply zero
+    let state = events |> List.fold apply zero
 
     printfn "\n--\n"
     printfn "%A" state.Board
@@ -49,11 +43,11 @@ let rec run events =
     |> Map.iter (fun player ps ->
         let tiles =
             ps.Tiles
-            |> List.map (function Tile (x, y) -> sprintf "[%d %d] " x y)
+            |> List.map (function
+                | Tile(x, y) -> sprintf "[%d %d] " x y)
             |> System.String.Concat
 
-        printfn "[%03d] %s %s" ps.Score player.Name tiles
-    )
+        printfn "[%03d] %s %s" ps.Score player.Name tiles)
 
     match state.Winner, state.Active with
     | None, Some player ->
@@ -63,24 +57,17 @@ let rec run events =
             state
             |> execute action
             |> function
-                | Error _    -> events
+                | Error _ -> events
                 | Ok events' -> events' |> List.append events
             |> run
-    | _ ->
-        events
+    | _ -> events
 
 [<EntryPoint>]
 let main argv =
     printfn "== Domino =="
 
-    let players = [
-        { Id = 0; Name = "Player #0" }
-        { Id = 1; Name = "Player #1" }
-    ]
+    let players = [ { Id = 0; Name = "Player #0" }; { Id = 1; Name = "Player #1" } ]
 
-    players
-    |> start
-    |> run
-    |> ignore
+    players |> start |> run |> ignore
 
     0
