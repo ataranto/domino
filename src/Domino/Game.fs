@@ -1,6 +1,11 @@
 namespace Domino
 
+open Events
+
 module Game =
-    // Game logic will go here
-    1
+    /// Creates a new game with the given players.
+    /// Returns the initial sequence of events.
+    let newGame players =
+        Events.start players
+
     ()
