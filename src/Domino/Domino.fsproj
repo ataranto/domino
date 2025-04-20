@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9</TargetFramework>
@@ -8,6 +8,7 @@
     <Compile Include="Tile.fs" />
     <Compile Include="Board.fs" />
     <Compile Include="Events.fs" />
+    <Compile Include="Game.fs" />
   </ItemGroup>
 
 </Project>
