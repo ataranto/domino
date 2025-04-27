@@ -6,26 +6,38 @@ open FsUnitTyped
 open Domino
 open Domino.SimpleRules
 
-type ``SimpleRules Tests``() =
+module SimpleRules =
 
     let rules = SimpleRules.Impl() :> Rules<SimpleRules.State>
 
     [<Fact>]
-    let ``SimpleRules.start should return Error for invalid player count`` () =
+    let ``start should return Error for invalid player count`` () =
         [ { Id = 0; Name = "Player 1" } ]
         |> rules.start
         |> Result.isError
         |> should be True
 
-    [<Fact>]
-    let ``SimpleRules.start should return Ok for valid player count`` () =
+    type ``start initial state``() =
         let players = [ { Id = 0; Name = "Player 1" }; { Id = 1; Name = "Player 2" } ]
-        let result = rules.start players
+        let result = players |> rules.start
 
         let state =
             match result with
             | Ok state -> state
             | Error err -> failwithf "Expected Ok but got Error: %s" err
 
-        state.Players |> Map.count |> should equal 2
-        state.Tiles |> List.length |> should equal 14
+        [<Fact>]
+        let ``should be Ok`` () = state
+
+        [<Fact>]
+        let ``should start with an Empty board`` () = state.Board |> shouldEqual Empty
+
+        [<Fact>]
+        let ``should give each player 7 tiles`` () =
+            state.Players
+            |> Map.forall (fun _ playerState -> playerState.Tiles.Length = 7)
+            |> should be True
+
+        [<Fact>]
+        let ``should have 14 remaining tiles`` () =
+            state.Tiles |> List.length |> should equal 14
