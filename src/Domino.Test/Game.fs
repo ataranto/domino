@@ -5,10 +5,6 @@ open FsUnit.Xunit
 
 open Domino
 
-// Add tests for the Game module here
-[<Fact>]
-let ``placeholder test`` () = true |> should be True
-
 [<Fact>]
 let ``Game.start should initialize the game state correctly`` () =
     let rules = Domino.SimpleRules()
