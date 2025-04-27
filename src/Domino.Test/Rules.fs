@@ -5,7 +5,7 @@ open FsUnit.Xunit
 open Domino
 
 type ``SimpleRules Tests``() =
-    let rules = SimpleRules() :> Rules
+    let rules = SimpleRules() :> Rules<SimpleState>
 
     [<Fact>]
     let ``SimpleRules.start should return Error for invalid player count`` () =
