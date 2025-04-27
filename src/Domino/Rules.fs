@@ -3,13 +3,24 @@ namespace Domino
 type Rules<'State> =
     abstract member start: Player list -> Result<'State, string>
 
-
 module SimpleRules =
     type State =
         { Players: Map<Player, PlayerState>
           Active: Player
           Board: Tree<Tile>
           Tiles: Tile list }
+
+    let tiles =
+        let maxValue = 6
+
+        [ for x in 0..maxValue do
+              for y in x..maxValue do
+                  yield Tile(x, y) ]
+        |> set
+
+    let weight =
+        function
+        | Tile(x, y) -> x = y, x + y, max x y
 
     let checkPlayerCount players =
         if List.length players >= 2 && List.length players <= 4 then
@@ -18,31 +29,29 @@ module SimpleRules =
             Error "Number of players must be between 2 and 4"
 
     let init players =
-        let max = 6
         let handSize = 7
-
-        let allTiles =
-            [ for x in 0..6 do
-                  for y in x..6 do
-                      yield Tile(x, y) ]
-            |> List.randomShuffle
+        let shuffledTiles = tiles |> List.ofSeq |> List.randomShuffle
 
         let playerStates =
-            allTiles
+            shuffledTiles
             |> List.chunkBySize handSize
             |> List.take (players |> List.length)
             |> List.zip players
             |> List.map (fun (player, tiles) -> player, { Tiles = tiles; Score = 0 })
             |> Map.ofList
 
-        let tiles = allTiles |> List.skip (players |> List.length |> (*) handSize)
+        let active =
+            playerStates
+            |> Map.toList
+            |> List.maxBy (fun (_, ps) -> ps.Tiles |> List.maxBy weight)
+            |> fst
 
+        let boneyard = shuffledTiles |> List.skip (players |> List.length |> (*) handSize)
 
         { Players = playerStates
-          Active = List.head players
+          Active = active
           Board = Empty
-          Tiles = tiles }
-
+          Tiles = boneyard }
 
     type Impl() =
         interface Rules<State> with
