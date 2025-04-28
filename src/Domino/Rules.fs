@@ -13,7 +13,7 @@ module SimpleRules =
     type State =
         { Players: Map<Player, PlayerState>
           Active: Player
-          Board: Tree<Tile>
+          Board: Tree
           Tiles: Tile list }
 
     let handSize = 7
@@ -66,10 +66,24 @@ module SimpleRules =
         let rec loop result =
             function
             | Empty -> result
-            | Node(tile, []) -> tile :: result
-            | Node(_, children) -> children |> List.collect (loop result)
+            | Node(tile, edges') ->
+                edges'
+                |> List.collect (function
+                    | value, Empty -> (tile, value) :: result
+                    | _, tree -> tree |> loop result)
 
         board |> loop List.empty
+
+    let attach tile tree =
+        let values =
+            function
+            | Tile(x, y) -> [ x; y ]
+
+        let rec loop =
+            function
+            | Empty -> Node(tile, tile |> values |> List.map (fun value -> value, Empty))
+
+        tree |> loop
 
     // transition to the next player's turn
     let turn state =
@@ -97,7 +111,14 @@ module SimpleRules =
 
                 match state.Board with
                 | Empty -> tiles |> List.maxBy weight |> Lead |> List.singleton
-                | _ -> []
+                | node ->
+                    node
+                    |> edges
+                    |> List.allPairs tiles
+                    |> List.choose (function
+                        | Tile(x, y), (tile, value) when x = value || y = value -> Some(Attach(Tile(x, y), tile))
+                        | _ -> None)
+                    |> List.distinct
 
             member this.play action state =
                 let rules = this :> Rules<State, Action>
@@ -109,4 +130,8 @@ module SimpleRules =
                     )
                 else
                     match action with
-                    | Lead tile -> { state with Board = Node(tile, []) } |> turn |> Ok
+                    | Lead tile ->
+                        { state with
+                            Board = state.Board |> attach tile }
+                        |> turn
+                        |> Ok
