@@ -5,6 +5,12 @@ open FsUnit.Xunit
 open FsUnitTyped
 open Domino
 
+let players =
+    [ 0..3 ]
+    |> List.map (fun i ->
+        { Id = i
+          Name = sprintf "Player %d" (i + 1) })
+
 module SimpleRules =
     open Domino.SimpleRules
     let rules = Impl() :> Rules<State, Action>
@@ -43,8 +49,8 @@ module SimpleRules =
         |> should be True
 
     type ``start initial state``() =
-        let players = [ { Id = 0; Name = "Player 1" }; { Id = 1; Name = "Player 2" } ]
-        let result = players |> rules.start
+        let playerCount = 2
+        let result = players |> List.take playerCount |> rules.start
 
         let state =
             match result with
@@ -56,7 +62,7 @@ module SimpleRules =
 
         [<Fact>]
         let ``should add each player`` () =
-            state.Players |> Map.count |> shouldEqual players.Length
+            state.Players |> Map.count |> shouldEqual playerCount
 
         [<Fact>]
         let ``should give each player 7 tiles`` () =
@@ -83,3 +89,20 @@ module SimpleRules =
         [<Fact>]
         let ``should have 14 remaining tiles`` () =
             state.Tiles |> List.length |> should equal 14
+
+    [<Fact>]
+    let ``sequence test 1`` () =
+        let state =
+            let players = players |> List.take 2
+
+            let hands, boneyard =
+                tiles |> Set.toList |> List.sortByDescending weight |> deal players
+
+            let playerStates = hands |> Map.map (fun _ tiles -> { Tiles = tiles; Score = 0 })
+
+            { Players = playerStates
+              Active = players |> List.head
+              Board = Empty
+              Tiles = boneyard }
+
+        state |> rules.actions |> shouldEqual [ Lead(Tile(6, 6)) ]

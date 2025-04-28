@@ -5,7 +5,7 @@ open Domino
 open Domino.SimpleRules
 
 
-let rules = Domino.SimpleRules.Impl() :> Rules<SimpleRules.State>
+let rules = Domino.SimpleRules.Impl() :> Rules<State, Action>
 let players = [ { Id = 0; Name = "Alice" }; { Id = 1; Name = "Bob" } ]
 
 let state = players |> rules.start
