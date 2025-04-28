@@ -62,6 +62,31 @@ module SimpleRules =
           Board = Empty
           Tiles = boneyard }
 
+    let edges board =
+        let rec loop result =
+            function
+            | Empty -> result
+            | Node(tile, []) -> tile :: result
+            | Node(_, children) -> children |> List.collect (loop result)
+
+        board |> loop List.empty
+
+    // transition to the next player's turn
+    let turn state =
+        let players = state.Players |> Map.keys
+
+        let active =
+            players
+            |> Seq.head
+            |> Seq.singleton
+            |> Seq.append players
+            |> Seq.pairwise
+            |> Seq.pick (function
+                | curr, next when curr = state.Active -> Some next
+                | _ -> None)
+
+        { state with Active = active }
+
     type Impl() =
         interface Rules<State, Action> with
             member _.start players =
@@ -78,7 +103,10 @@ module SimpleRules =
                 let rules = this :> Rules<State, Action>
 
                 if state |> rules.actions |> List.contains action |> not then
-                    Error "Invalid action"
+                    Error(
+                        "Invalid action. Valid actions are: "
+                        + (state |> rules.actions |> List.map (sprintf "%A") |> String.concat ", ")
+                    )
                 else
                     match action with
-                    | Lead tile -> Ok { state with Board = Node(tile, []) }
+                    | Lead tile -> { state with Board = Node(tile, []) } |> turn |> Ok

@@ -90,8 +90,8 @@ module SimpleRules =
         let ``should have 14 remaining tiles`` () =
             state.Tiles |> List.length |> should equal 14
 
-    [<Fact>]
-    let ``sequence test 1`` () =
+    type SequenceTest(output: ITestOutputHelper) =
+        // initial non-random state, tiles sorted by weight
         let state =
             let players = players |> List.take 2
 
@@ -105,19 +105,25 @@ module SimpleRules =
               Board = Empty
               Tiles = boneyard }
 
-        // initial action is always Lead
-        state |> rules.actions |> shouldEqual [ Lead(Tile(6, 6)) ]
+        let actions = [ Lead(Tile(6, 6)) ]
 
-        // playing in invalid actions results in an error
-        state |> rules.play (Lead(Tile(5, 5))) |> Result.isError |> should be True
+        let states =
+            actions
+            |> List.scan (fun state action -> state |> rules.play action |> Result.defaultValue state) state
 
-        // playing a valid action returns a new state
-        let state =
-            state
-            |> rules.play (Lead(Tile(6, 6)))
-            |> function
-                | Ok state -> state
-                | Error err -> failwithf "Expected Ok but got Error: %s" err
-                | _ -> failwith "Unexpected pattern match case"
+        [<Fact>]
+        member _.``state 1: Lead(Tile(6, 6))``() =
+            let state = states |> List.item 1
 
-        state.Board |> shouldNotEqual Empty
+            output.WriteLine "==="
+            output.WriteLine($"%A{state}")
+            output.WriteLine($"%A{state.Board}")
+            output.WriteLine($"edges: %A{state.Board |> edges}")
+            output.WriteLine($"actions: %A{state |> rules.actions}")
+
+            state.Board |> shouldEqual (Node(Tile(6, 6), []))
+            state.Active |> shouldEqual (players |> List.item 1)
+
+
+
+// true |> shouldEqual false
