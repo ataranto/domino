@@ -105,7 +105,7 @@ module SimpleRules =
               Board = Empty
               Tiles = boneyard }
 
-        let actions = [ Lead(Tile(6, 6)) ]
+        let actions = [ Lead(Tile(6, 6)); Attach(Tile(5, 6), Tile(6, 6)) ]
 
         let states =
             actions
@@ -115,17 +115,26 @@ module SimpleRules =
         member _.``state 1: Lead(Tile(6, 6))``() =
             let state = states |> List.item 1
 
+            state.Board
+            |> shouldEqual (Node(Tile(6, 6), [ 6, Empty; 6, Empty; 6, Empty; 6, Empty ]))
+
+            state.Active |> shouldEqual (players |> List.item 1)
+
+        [<Fact>]
+        member _.``state 2: Attach(Tile(5, 6), Tile(6, 6))``() =
+
+            let state = states |> List.item 2
+
             output.WriteLine "==="
             output.WriteLine($"%A{state}")
             output.WriteLine($"%A{state.Board}")
             output.WriteLine($"edges: %A{state.Board |> edges}")
             output.WriteLine($"actions: %A{state |> rules.actions}")
 
-            state.Board |> shouldEqual (Node(Tile(6, 6), [ 6, Empty; 6, Empty ]))
+            state.Board
+            |> shouldEqual (Node(Tile(6, 6), [ (6, Empty); (6, Empty); (6, Empty); (6, Empty) ]))
 
-            state.Active |> shouldEqual (players |> List.item 1)
 
-            state |> rules.actions |> shouldEqual []
 
 
 

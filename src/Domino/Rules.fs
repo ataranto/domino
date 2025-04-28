@@ -74,14 +74,33 @@ module SimpleRules =
 
         board |> loop List.empty
 
-    let attach tile tree =
+    let lead =
+        function
+        | Tile(x, y) as tile when x = y ->
+            Node(tile, (x, Empty) |> List.singleton |> List.replicate 4 |> List.collect id)
+        | Tile(x, y) as tile -> Node(tile, [ x, Empty; y, Empty ])
+
+    let attach tile target tree =
         let values =
             function
             | Tile(x, y) -> [ x; y ]
 
+        let rec intersect =
+            function
+            | _, [] -> None
+            | Tile(x, y), (value, Empty) :: _ when value = x || value = y -> Some value
+            | tile, _ :: edges -> (tile, edges) |> intersect
+
         let rec loop =
             function
-            | Empty -> Node(tile, tile |> values |> List.map (fun value -> value, Empty))
+            | Empty -> Empty
+            | Node(t, edges) when t = target ->
+                match (tile, edges) |> intersect with
+                | None -> Node(t, edges)
+                | Some value ->
+                    let edge = value, Node(tile, []) // XXX
+                    Node(t, edge :: edges) // XXX
+            | Node(t, edges) -> Node(t, edges |> List.map (fun (v, tree) -> v, tree |> loop))
 
         tree |> loop
 
@@ -116,7 +135,7 @@ module SimpleRules =
                     |> edges
                     |> List.allPairs tiles
                     |> List.choose (function
-                        | Tile(x, y), (tile, value) when x = value || y = value -> Some(Attach(Tile(x, y), tile))
+                        | Tile(x, y) as tile, (target, value) when x = value || y = value -> Some(Attach(tile, target))
                         | _ -> None)
                     |> List.distinct
 
@@ -130,8 +149,9 @@ module SimpleRules =
                     )
                 else
                     match action with
-                    | Lead tile ->
+                    | Lead tile -> { state with Board = tile |> lead } |> turn |> Ok
+                    | Attach(tile, target) ->
                         { state with
-                            Board = state.Board |> attach tile }
+                            Board = state.Board |> attach tile target }
                         |> turn
                         |> Ok
