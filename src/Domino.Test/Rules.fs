@@ -7,7 +7,7 @@ open Domino
 
 module SimpleRules =
     open Domino.SimpleRules
-    let rules = SimpleRules.Impl() :> Rules<SimpleRules.State>
+    let rules = Impl() :> Rules<State, Action>
 
     [<Fact>]
     let ``tile set should contain 28 tiles`` () = tiles |> Set.count |> shouldEqual 28

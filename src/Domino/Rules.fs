@@ -1,14 +1,20 @@
 namespace Domino
 
-type Rules<'State> =
+type Rules<'State, 'Action> =
     abstract member start: Player list -> Result<'State, string>
+    abstract member actions: 'State -> 'Action list
 
 module SimpleRules =
+    type Action =
+        | Lead of Tile
+        | Play of Tile * Tile
+
     type State =
         { Players: Map<Player, PlayerState>
           Active: Player
           Board: Tree<Tile>
           Tiles: Tile list }
+
 
     let tiles =
         let maxValue = 6
@@ -54,6 +60,8 @@ module SimpleRules =
           Tiles = boneyard }
 
     type Impl() =
-        interface Rules<State> with
+        interface Rules<State, Action> with
             member _.start players =
                 players |> checkPlayerCount |> Result.map init
+
+            member _.actions state = []

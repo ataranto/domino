@@ -2,4 +2,4 @@ namespace Domino
 
 
 module Game =
-    let start (rules: Rules<'State>) players = players |> rules.start
+    let start (rules: Rules<'State, 'Action>) players = players |> rules.start
