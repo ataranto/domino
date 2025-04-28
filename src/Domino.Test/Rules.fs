@@ -105,4 +105,19 @@ module SimpleRules =
               Board = Empty
               Tiles = boneyard }
 
+        // initial action is always Lead
         state |> rules.actions |> shouldEqual [ Lead(Tile(6, 6)) ]
+
+        // playing in invalid actions results in an error
+        state |> rules.play (Lead(Tile(5, 5))) |> Result.isError |> should be True
+
+        // playing a valid action returns a new state
+        let state =
+            state
+            |> rules.play (Lead(Tile(6, 6)))
+            |> function
+                | Ok state -> state
+                | Error err -> failwithf "Expected Ok but got Error: %s" err
+                | _ -> failwith "Unexpected pattern match case"
+
+        state.Board |> shouldNotEqual Empty

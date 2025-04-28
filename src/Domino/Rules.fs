@@ -3,6 +3,7 @@ namespace Domino
 type Rules<'State, 'Action> =
     abstract member start: Player list -> Result<'State, string>
     abstract member actions: 'State -> 'Action list
+    abstract member play: 'Action -> 'State -> Result<'State, string>
 
 module SimpleRules =
     type Action =
@@ -72,3 +73,12 @@ module SimpleRules =
                 match state.Board with
                 | Empty -> tiles |> List.maxBy weight |> Lead |> List.singleton
                 | _ -> []
+
+            member this.play action state =
+                let rules = this :> Rules<State, Action>
+
+                if state |> rules.actions |> List.contains action |> not then
+                    Error "Invalid action"
+                else
+                    match action with
+                    | Lead tile -> Ok { state with Board = Node(tile, []) }
