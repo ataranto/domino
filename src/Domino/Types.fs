@@ -4,7 +4,7 @@ type Tile = Tile of int * int
 
 type Tree =
     | Empty
-    | Node of Tile * (int * Tree) list
+    | Node of Tile * Tree list
 
 type Player = { Id: int; Name: string }
 

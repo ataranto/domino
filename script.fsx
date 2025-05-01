@@ -1,12 +1,23 @@
 #load "src/Domino/Types.fs"
-#load "src/Domino/Rules.fs"
 
 open Domino
-open Domino.SimpleRules
 
+let tree =
+    let tile1 = Tile(1, 2)
+    let tile2 = Tile(2, 3)
+    let tile3 = Tile(3, 4)
+    Node(tile1, [ Node(tile2, [ Node(tile3, []) ]) ])
 
-let rules = Domino.SimpleRules.Impl() :> Rules<State, Action>
-let players = [ { Id = 0; Name = "Alice" }; { Id = 1; Name = "Bob" } ]
+let leaves tree =
+    let rec loop acc =
+        function
+        | Empty -> acc
+        | Node(tile, []) -> tile :: acc
+        | Node(tile, children) -> children |> List.fold (fun a c -> loop a c) acc
 
-let state = players |> rules.start
-printfn "%A" state
+    match tree with
+    | Node(tile, [ _ ]) -> tree |> loop [ tile ]
+    | tree -> tree |> loop List.empty
+
+// Example usage:
+tree |> leaves

@@ -80,6 +80,21 @@ module SimpleRules =
             Node(tile, (x, Empty) |> List.singleton |> List.replicate 4 |> List.collect id)
         | Tile(x, y) as tile -> Node(tile, [ x, Empty; y, Empty ])
 
+    let rec attach (tree: Tree) (tile: Tile) (target: Tile) : Tree =
+        match tree with
+        | Empty -> Empty
+        | Node(t, children) when t = target ->
+            // Attach the new tile as a child (with an empty subtree)
+            Node(t, (0, Node(tile, [])) :: children)
+        | Node(t, children) ->
+            // Recursively search in children
+            let newChildren =
+                children |> List.map (fun (i, subtree) -> (i, attach subtree tile target))
+
+            Node(t, newChildren)
+
+
+
     let attach tile target tree =
         let values =
             function
