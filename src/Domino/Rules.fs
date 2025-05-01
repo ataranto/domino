@@ -76,46 +76,35 @@ module SimpleRules =
 
     let lead =
         function
-        | Tile(x, y) as tile when x = y ->
-            Node(tile, (x, Empty) |> List.singleton |> List.replicate 4 |> List.collect id)
-        | Tile(x, y) as tile -> Node(tile, [ x, Empty; y, Empty ])
-
-    let rec attach (tree: Tree) (tile: Tile) (target: Tile) : Tree =
-        match tree with
-        | Empty -> Empty
-        | Node(t, children) when t = target ->
-            // Attach the new tile as a child (with an empty subtree)
-            Node(t, (0, Node(tile, [])) :: children)
-        | Node(t, children) ->
-            // Recursively search in children
-            let newChildren =
-                children |> List.map (fun (i, subtree) -> (i, attach subtree tile target))
-
-            Node(t, newChildren)
-
-
+        | Tile(x, y) as tile when x = y -> Node(tile, x |> List.replicate 4 |> List.map (fun value -> value, Empty))
+        | tile -> Node(tile, tile |> Tile.values |> List.map (fun value -> value, Empty))
 
     let attach tile target tree =
-        let values =
-            function
-            | Tile(x, y) -> [ x; y ]
-
         let rec intersect =
             function
             | _, [] -> None
             | Tile(x, y), (value, Empty) :: _ when value = x || value = y -> Some value
             | tile, _ :: edges -> (tile, edges) |> intersect
 
+        let rec remove value =
+            function
+            | [] -> []
+            | x :: xs when x = value -> xs
+            | x :: xs -> x :: xs |> remove value
+
         let rec loop =
             function
             | Empty -> Empty
-            | Node(t, edges) when t = target ->
-                match (tile, edges) |> intersect with
-                | None -> Node(t, edges)
+            | Node(t, children) when t = target ->
+                match (tile, children) |> intersect with
+                | None -> Node(t, children)
                 | Some value ->
-                    let edge = value, Node(tile, []) // XXX
-                    Node(t, edge :: edges) // XXX
-            | Node(t, edges) -> Node(t, edges |> List.map (fun (v, tree) -> v, tree |> loop))
+                    let edge =
+                        value, Node(tile, [ tile |> Tile.values |> List.except [ value ] |> List.head, Empty ])
+
+
+                    Node(t, edge :: (children |> remove (value, Empty)))
+            | Node(t, children) -> Node(t, children |> List.map (fun (v, tree) -> v, tree |> loop))
 
         tree |> loop
 

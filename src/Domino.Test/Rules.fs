@@ -132,9 +132,7 @@ module SimpleRules =
             output.WriteLine($"actions: %A{state |> rules.actions}")
 
             state.Board
-            |> shouldEqual (
-                Node(Tile(6, 6), [ (6, Node(Tile(5, 6), [])); (6, Empty); (6, Empty); (6, Empty); (6, Empty) ])
-            )
+            |> shouldEqual (Node(Tile(6, 6), [ 6, Node(Tile(5, 6), [ 5, Empty ]); 6, Empty; 6, Empty; 6, Empty ]))
 
 
 
