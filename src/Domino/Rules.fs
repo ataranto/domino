@@ -54,7 +54,7 @@ module SimpleRules =
         let active =
             playerStates
             |> Map.toList
-            |> List.maxBy (fun (_, ps) -> ps.Tiles |> List.maxBy weight)
+            |> List.maxBy (fun (_, ps) -> ps.Tiles |> List.map weight |> List.max)
             |> fst
 
         { Players = playerStates
@@ -80,31 +80,20 @@ module SimpleRules =
         | tile -> Node(tile, tile |> Tile.values |> List.map (fun value -> value, Empty))
 
     let attach tile target tree =
-        let rec intersect =
-            function
-            | _, [] -> None
-            | Tile(x, y), (value, Empty) :: _ when value = x || value = y -> Some value
-            | tile, _ :: edges -> (tile, edges) |> intersect
+        let intersect edges (Tile(x, y)) =
+            edges |> List.pick (fun (v, _) -> if v = x || v = y then Some v else None)
 
-        let rec remove value =
-            function
-            | [] -> []
-            | x :: xs when x = value -> xs
-            | x :: xs -> x :: xs |> remove value
+        let create value =
+            value, Node(tile, tile |> Tile.values |> List.remove value |> Tree.empty)
 
         let rec loop =
             function
             | Empty -> Empty
-            | Node(t, children) when t = target ->
-                match (tile, children) |> intersect with
-                | None -> Node(t, children)
-                | Some value ->
-                    let edge =
-                        value, Node(tile, [ tile |> Tile.values |> List.except [ value ] |> List.head, Empty ])
-
-
-                    Node(t, edge :: (children |> remove (value, Empty)))
-            | Node(t, children) -> Node(t, children |> List.map (fun (v, tree) -> v, tree |> loop))
+            | Node(t, edges) when t = target ->
+                tile
+                |> intersect edges
+                |> fun value -> Node(t, (value |> create) :: (edges |> List.remove (value, Empty)))
+            | Node(t, edges) -> Node(t, edges |> List.map (fun (v, tree) -> v, tree |> loop))
 
         tree |> loop
 

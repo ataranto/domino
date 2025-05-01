@@ -48,7 +48,7 @@ module SimpleRules =
         |> Result.isError
         |> should be True
 
-    type ``start initial state``() =
+    type ``start initial state``(output: ITestOutputHelper) =
         let playerCount = 2
         let result = players |> List.take playerCount |> rules.start
 
