@@ -9,6 +9,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Domino", "src\Domino\Domino
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Domino.Test", "src\Domino.Test\Domino.Test.fsproj", "{28031803-A749-455B-9481-59C4BAD61232}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Domino.Console", "src\Domino.Console\Domino.Console.fsproj", "{5BF949CD-7423-493F-A6AC-17CD3E6A765F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,18 @@ Global
 		{28031803-A749-455B-9481-59C4BAD61232}.Release|x64.Build.0 = Release|Any CPU
 		{28031803-A749-455B-9481-59C4BAD61232}.Release|x86.ActiveCfg = Release|Any CPU
 		{28031803-A749-455B-9481-59C4BAD61232}.Release|x86.Build.0 = Release|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Debug|x64.Build.0 = Debug|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Debug|x86.Build.0 = Debug|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Release|x64.ActiveCfg = Release|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Release|x64.Build.0 = Release|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Release|x86.ActiveCfg = Release|Any CPU
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,5 +64,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{7837679B-24F6-4486-AE13-A239BD8DD568} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{28031803-A749-455B-9481-59C4BAD61232} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{5BF949CD-7423-493F-A6AC-17CD3E6A765F} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

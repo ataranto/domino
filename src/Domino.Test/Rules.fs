@@ -126,16 +126,10 @@ module SimpleRules =
             let state = states |> List.item 2
 
             output.WriteLine "==="
-            output.WriteLine($"%A{state}")
-            output.WriteLine($"%A{state.Board}")
-            output.WriteLine($"edges: %A{state.Board |> edges}")
-            output.WriteLine($"actions: %A{state |> rules.actions}")
+            output.WriteLine $"%A{state}"
+            output.WriteLine $"%A{state.Board}"
+            output.WriteLine $"edges: %A{state.Board |> edges}"
+            output.WriteLine $"actions: %A{state |> rules.actions}"
 
             state.Board
             |> shouldEqual (Node(Tile(6, 6), [ 6, Node(Tile(5, 6), [ 5, Empty ]); 6, Empty; 6, Empty; 6, Empty ]))
-
-
-
-
-
-// true |> shouldEqual false
