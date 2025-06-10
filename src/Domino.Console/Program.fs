@@ -7,15 +7,13 @@ let rules = Impl() :> Rules<State, Action>
 let rec prompt state =
     printfn ""
     let player = state.Active
-    let tiles = state.Players |> Map.find player |> _.Tiles
-
     let actions = state |> rules.actions
 
     actions
     |> List.indexed
     |> List.iter (fun (index, (action)) -> printfn "[%d] [%02d] %A" index 0 action)
 
-    printfn "%s Action: " player.Name
+    printf "%s Action: " player.Name
 
     match System.Console.ReadLine() |> System.Int32.TryParse with
     | true, c when c < actions.Length -> actions |> List.item c
@@ -23,6 +21,7 @@ let rec prompt state =
 
 let rec run state =
     printfn "%A" state.Board
+    printfn ""
 
     state.Players
     |> Map.iter (fun player ps ->
