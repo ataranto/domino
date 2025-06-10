@@ -1,9 +1,9 @@
 namespace Domino
 
-type Rules<'State, 'Action> =
-    abstract member start: Player list -> Result<'State, string>
-    abstract member actions: 'State -> 'Action list
-    abstract member play: 'Action -> 'State -> Result<'State, string>
+type Rules<'TState, 'TAction> =
+    abstract member start: Player list -> Result<'TState, string>
+    abstract member actions: 'TState -> 'TAction list
+    abstract member play: 'TAction -> 'TState -> Result<'TState, string>
 
 module SimpleRules =
     type Action =
