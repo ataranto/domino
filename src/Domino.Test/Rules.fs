@@ -118,7 +118,14 @@ module SimpleRules =
             state.Board
             |> shouldEqual (Node(Tile(6, 6), [ 6, Empty; 6, Empty; 6, Empty; 6, Empty ]))
 
+            // check that tile was removed from player's hand
+            state.Players
+            |> Map.find players.[0]
+            |> fun ps -> ps.Tiles |> List.exists (fun tile -> tile = Tile(6, 6)) |> should be False
+
+            // check that next player is active
             state.Active |> shouldEqual (players |> List.item 1)
+
 
         [<Fact>]
         member _.``state 2: Attach(Tile(5, 6), Tile(6, 6))``() =

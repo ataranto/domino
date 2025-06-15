@@ -141,10 +141,31 @@ module SimpleRules =
                         + (state |> rules.actions |> List.map (sprintf "%A") |> String.concat ", ")
                     )
                 else
+                    let tile =
+                        match action with
+                        | Lead tile -> tile
+                        | Attach(tile, _) -> tile
+
+                    let players =
+                        state.Players
+                        |> Map.find state.Active
+                        |> fun ps ->
+                            state.Players
+                            |> Map.add
+                                state.Active
+                                { ps with
+                                    Tiles = ps.Tiles |> List.remove tile }
+
                     match action with
-                    | Lead tile -> { state with Board = tile |> lead } |> turn |> Ok
+                    | Lead tile ->
+                        { state with
+                            Players = players
+                            Board = tile |> lead }
+                        |> turn
+                        |> Ok
                     | Attach(tile, target) ->
                         { state with
+                            Players = players
                             Board = state.Board |> attach tile target }
                         |> turn
                         |> Ok
