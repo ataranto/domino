@@ -148,13 +148,11 @@ module SimpleRules =
 
                     let players =
                         state.Players
-                        |> Map.find state.Active
-                        |> fun ps ->
-                            state.Players
-                            |> Map.add
-                                state.Active
+                        |> Map.change
+                            state.Active
+                            (Option.map (fun ps ->
                                 { ps with
-                                    Tiles = ps.Tiles |> List.remove tile }
+                                    Tiles = ps.Tiles |> List.remove tile }))
 
                     match action with
                     | Lead tile ->
