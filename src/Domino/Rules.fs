@@ -167,3 +167,52 @@ module SimpleRules =
                             Board = state.Board |> attach tile target }
                         |> turn
                         |> Ok
+
+
+module EventSimpleRules =
+    type Action =
+        | AddPlayer of Player
+        | StartGame
+
+    type Event =
+        | PlayerAdded of Player
+        | GameStarted
+        | RoundStarted
+
+
+    type Error = unit
+
+    type State =
+        | Waiting of Waiting
+        | Playing of Playing
+        | Finished
+
+    and Waiting = { Players: Set<Player> }
+
+    and Playing =
+        { Players: Map<Player, PlayerState>
+          Active: Player
+          Board: Tree
+          Tiles: Tile list }
+
+    type Decide = Action -> State -> Result<Event list, Error>
+    type Evolve = State -> Event -> State
+
+    let decide: Decide =
+        fun action state ->
+            match state, action with
+            | Waiting waiting, AddPlayer player ->
+                match waiting.Players |> Set.contains player with
+                | true -> Error()
+                | false -> Ok [ PlayerAdded player ]
+
+            | _ -> Error()
+
+    let evolve: Evolve =
+        fun state event ->
+            match state, event with
+            | Waiting waiting, PlayerAdded player ->
+                Waiting
+                    { waiting with
+                        Players = waiting.Players |> Set.add player }
+            | _ -> state
