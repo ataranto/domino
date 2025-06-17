@@ -15,7 +15,6 @@ let result =
     (state, actions)
     ||> List.scan (fun state action ->
         let events = state |> decide action
-        printfn "state: %A, action: %A" state action
 
         match events with
         | Error error -> state

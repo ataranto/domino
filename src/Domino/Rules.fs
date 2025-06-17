@@ -177,15 +177,15 @@ module EventSimpleRules =
     type Event =
         | PlayerAdded of Player
         | GameStarted
+        | TilesShuffled
         | RoundStarted
-
 
     type Error = unit
 
     type State =
         | Waiting of Waiting
         | Playing of Playing
-        | Finished
+        | Finshed
 
     and Waiting = { Players: Set<Player> }
 
@@ -206,6 +206,8 @@ module EventSimpleRules =
                 | true -> Error()
                 | false -> Ok [ PlayerAdded player ]
 
+            | Waiting waiting, StartGame -> Ok [ GameStarted; TilesShuffled; RoundStarted ]
+
             | _ -> Error()
 
     let evolve: Evolve =
@@ -215,4 +217,43 @@ module EventSimpleRules =
                 Waiting
                     { waiting with
                         Players = waiting.Players |> Set.add player }
-            | _ -> state
+
+            | Waiting waiting, GameStarted ->
+                let players =
+                    waiting.Players
+                    |> Set.toList
+                    |> List.map (fun p -> p, { Tiles = []; Score = 0 })
+                    |> Map.ofList
+
+                Playing
+                    { Players = players
+                      Active = waiting.Players |> Set.toList |> List.head
+                      Board = Empty
+                      Tiles = [] }
+
+            | Playing playing, TilesShuffled ->
+                let hands, boneyard =
+                    SimpleRules.tiles
+                    |> List.ofSeq
+                    |> List.randomShuffle
+                    |> SimpleRules.deal (playing.Players |> Map.keys |> List.ofSeq)
+
+                let players =
+                    playing.Players
+                    |> Map.map (fun player _ -> { Tiles = hands.[player]; Score = 0 })
+
+                Playing
+                    { playing with
+                        Players = players
+                        Tiles = boneyard }
+
+            | Playing playing, RoundStarted ->
+                let active =
+                    playing.Players
+                    |> Map.toList
+                    |> List.maxBy (fun (_, ps) -> ps.Tiles |> List.map SimpleRules.weight |> List.max)
+                    |> fst
+
+                Playing { playing with Active = active }
+
+            | _ -> failwithf "Unexpected event %A in state %A" event state
