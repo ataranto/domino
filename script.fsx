@@ -1,8 +1,9 @@
 #load "src/Domino/Types.fs"
 #load "src/Domino/Rules.fs"
+#load "src/Domino/SimpleRules.fs"
 
 open Domino
-open Domino.EventSimpleRules
+open Domino.SimpleRules
 
 let state = Waiting { Players = Set.empty }
 
