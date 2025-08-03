@@ -1,5 +1,5 @@
 ﻿open Domino
-open Domino.SimpleRules
+open Domino.OldSimpleRules
 
 let players = [ { Id = 0; Name = "Player #0" }; { Id = 1; Name = "Player #1" } ]
 let rules = Impl() :> Rules<State, Action>

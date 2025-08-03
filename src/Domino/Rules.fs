@@ -5,7 +5,7 @@ type Rules<'TState, 'TAction> =
     abstract member actions: 'TState -> 'TAction list
     abstract member play: 'TAction -> 'TState -> Result<'TState, string>
 
-module SimpleRules =
+module OldSimpleRules =
     type Action =
         | Lead of Tile
         | Attach of Tile * Tile
@@ -233,10 +233,10 @@ module EventSimpleRules =
 
             | Playing playing, TilesShuffled ->
                 let hands, boneyard =
-                    SimpleRules.tiles
+                    OldSimpleRules.tiles
                     |> List.ofSeq
                     |> List.randomShuffle
-                    |> SimpleRules.deal (playing.Players |> Map.keys |> List.ofSeq)
+                    |> OldSimpleRules.deal (playing.Players |> Map.keys |> List.ofSeq)
 
                 let players =
                     playing.Players
@@ -251,7 +251,7 @@ module EventSimpleRules =
                 let active =
                     playing.Players
                     |> Map.toList
-                    |> List.maxBy (fun (_, ps) -> ps.Tiles |> List.map SimpleRules.weight |> List.max)
+                    |> List.maxBy (fun (_, ps) -> ps.Tiles |> List.map OldSimpleRules.weight |> List.max)
                     |> fst
 
                 Playing { playing with Active = active }

@@ -12,7 +12,7 @@ let players =
           Name = sprintf "Player %d" (i + 1) })
 
 module SimpleRules =
-    open Domino.SimpleRules
+    open Domino.OldSimpleRules
     let rules = Impl() :> Rules<State, Action>
 
     [<Fact>]
