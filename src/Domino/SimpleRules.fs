@@ -67,15 +67,9 @@ let decide: Decide =
 
 let evolve: Evolve =
     fun state event ->
-        printfn "Evolving state with event: %A" event
-
         match state, event with
-        | Waiting players, PlayerAdded player ->
-            printfn "Adding player: %A" player
-            Waiting(player :: players)
+        | Waiting players, PlayerAdded player -> Waiting(player :: players)
         | Waiting players, GameStarted ->
-            printfn "Starting game with players: %A" players
-
             Playing
                 { Players = players |> List.map (fun p -> p, { Tiles = []; Score = 0 }) |> Map.ofList
                   Active = players |> List.head
