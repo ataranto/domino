@@ -1,19 +1,21 @@
 module Domino.SimpleRules
 
 type Action =
-    | StartGame of Player list
+    | AddPlayer of Player
+    | StartGame
     | Lead of Tile
     | Attach of Tile * Tile
 
 type Event =
-    | GameStarted of Player list
+    | GameStarted
+    | PlayerAdded of Player
     | TilesShuffled
     | RoundStarted
 
 type Error = unit
 
 type State =
-    | Waiting
+    | Waiting of Player list
     | Playing of Playing
     | Finished
 
@@ -55,9 +57,11 @@ let deal players tiles =
 let decide: Decide =
     fun action state ->
         match state, action with
-        | Waiting, StartGame players ->
+        | Waiting players, AddPlayer player -> Ok [ PlayerAdded player ]
+        | Waiting [], StartGame -> Error()
+        | Waiting players, StartGame ->
             // XXX: check player count, unique names, etc.
-            Ok [ GameStarted players; TilesShuffled; RoundStarted ]
+            Ok [ GameStarted; TilesShuffled; RoundStarted ]
 
         | _ -> Error()
 
@@ -66,7 +70,11 @@ let evolve: Evolve =
         printfn "Evolving state with event: %A" event
 
         match state, event with
-        | Waiting, GameStarted players ->
+        | Waiting players, PlayerAdded player ->
+            printfn "Adding player: %A" player
+            Waiting (player :: players)
+        | Waiting [], GameStarted -> failwith "Cannot start a game with no players"
+        | Waiting players, GameStarted ->
             printfn "Starting game with players: %A" players
 
             Playing
@@ -105,24 +113,15 @@ let evolve: Evolve =
 type Impl() =
     interface Rules<State, Action> with
         member _.start players =
-            let state = Waiting
-
-            let actions = players |> StartGame |> List.singleton
-
-            (state, actions)
-            ||> List.fold (fun state action ->
-                printfn "Processing action: %A" action
-                let events = state |> decide action
-
-                match events with
-                | Error _ -> state
-                | Ok events -> (state, events) ||> List.fold evolve)
-            |> Ok
+            Ok(Waiting [])
 
         member _.actions state =
             match state with
-            | Waiting -> []
+            | Waiting players -> [ StartGame ]
             | Playing playing -> [] // Define actions for playing state
             | Finished -> [] // No actions available in finished state
 
-        member _.play action state = Error "Not implemented"
+        member _.play action state =
+            match state |> decide action with
+            | Error err -> Error "Invalid action"
+            | Ok events -> Ok((state, events) ||> List.fold evolve)

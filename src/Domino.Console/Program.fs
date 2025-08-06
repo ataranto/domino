@@ -41,10 +41,35 @@ let rules = Impl() :> Rules<State, Action>
 //         | Error err -> printfn "Error: %A" err
 //         | Ok state' -> run state'
 
-let rec run state = printfn "%A" state
+let addPlayers (state: State) (players: Player list) =
+    (state, players)
+    ||> List.fold (fun state player ->
+        match rules.play (AddPlayer player) state with
+        | Ok state -> state
+        | Error err ->
+            printfn "Error: %A" err
+            state)
 
-players
-|> rules.start
+let startGame (state: State) =
+    match rules.play StartGame state with
+    | Ok state -> state
+    | Error err ->
+        printfn "Error: %A" err
+        state
+
+let rec run state =
+    printfn "%A" state
+    // let actions = rules.actions state
+    // let action = actions |> List.head
+    // match rules.play action state with
+    // | Ok state -> run state
+    // | Error err -> printfn "Error: %A" err
+
+rules.start []
 |> function
-    | Ok state -> run state
+    | Ok state ->
+        state
+        |> fun s -> addPlayers s players
+        |> startGame
+        |> run
     | Error err -> printfn "Error: %A" err
