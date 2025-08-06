@@ -9,7 +9,7 @@ type Action =
 type Event =
     | GameStarted
     | PlayerAdded of Player
-    | TilesShuffled
+    | RoundStarted
 
 type Error = unit
 
@@ -63,7 +63,7 @@ let decide: Decide =
         | Waiting [], StartGame -> Error()
         | Waiting players, StartGame ->
             // XXX: check player count, unique names, etc.
-            Ok [ GameStarted; TilesShuffled ]
+            Ok [ GameStarted; RoundStarted ]
 
         | _ -> Error()
 
@@ -75,12 +75,7 @@ let evolve: Evolve =
         | Waiting players, PlayerAdded player -> Waiting(player :: players)
         | Waiting players, GameStarted ->
             Starting { Players = players |> List.map (fun p -> p, { Tiles = []; Score = 0 }) |> Map.ofList }
-        // Playing
-        //     { Players = players |> List.map (fun p -> p, { Tiles = []; Score = 0 }) |> Map.ofList
-        //       Active = players |> List.head
-        //       Board = Empty
-        //       Tiles = [] }
-        | Starting starting, TilesShuffled ->
+        | Starting starting, RoundStarted ->
             let hands, boneyard =
                 tiles
                 |> List.ofSeq
