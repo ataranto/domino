@@ -72,8 +72,7 @@ let evolve: Evolve =
         match state, event with
         | Waiting players, PlayerAdded player ->
             printfn "Adding player: %A" player
-            Waiting (player :: players)
-        | Waiting [], GameStarted -> failwith "Cannot start a game with no players"
+            Waiting(player :: players)
         | Waiting players, GameStarted ->
             printfn "Starting game with players: %A" players
 
@@ -113,7 +112,18 @@ let evolve: Evolve =
 type Impl() =
     interface Rules<State, Action> with
         member _.start players =
-            Ok(Waiting [])
+            let state = Waiting []
+            let actions = (players |> List.map (fun p -> AddPlayer p)) @ [ StartGame ]
+
+            let folder result action =
+                match result with
+                | Error err -> Error err
+                | Ok state ->
+                    match decide action state with
+                    | Error _ -> Error "bad list of players"
+                    | Ok events -> Ok((state, events) ||> List.fold evolve)
+
+            (Ok state, actions) ||> List.fold folder
 
         member _.actions state =
             match state with
