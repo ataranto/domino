@@ -44,6 +44,18 @@ let weight =
     function
     | Tile(x, y) -> x = y, x + y, max x y
 
+let edges board =
+    let rec loop result =
+        function
+        | Empty -> result
+        | Node(tile, edges') ->
+            edges'
+            |> List.collect (function
+                | value, Empty -> (tile, value) :: result
+                | _, tree -> tree |> loop result)
+
+    board |> loop List.empty
+
 let deal players tiles =
     let hands =
         tiles
@@ -120,7 +132,19 @@ type Impl() =
             match state with
             | Waiting players -> [ StartGame ]
             | Starting starting -> [] // Define actions for starting state
-            | Playing playing -> [] // Define actions for playing state
+            | Playing playing ->
+                let tiles = playing.Players |> Map.find playing.Active |> (fun ps -> ps.Tiles)
+
+                match playing.Board with
+                | Empty -> tiles |> List.maxBy weight |> Lead |> List.singleton
+                | node ->
+                    node
+                    |> edges
+                    |> List.allPairs tiles
+                    |> List.choose (function
+                        | Tile(x, y) as tile, (target, value) when x = value || y = value -> Some(Attach(tile, target))
+                        | _ -> None)
+                    |> List.distinct
             | Finished -> [] // No actions available in finished state
 
         member _.play action state =

@@ -4,10 +4,10 @@ open Domino.SimpleRules
 let players = [ { Id = 0; Name = "Player #0" }; { Id = 1; Name = "Player #1" } ]
 let rules = Impl() :> Rules<State, Action>
 
-let rec prompt (playing: Playing) =
+let rec prompt state =
     printfn ""
-    let player = playing.Active
-    let actions = (Playing playing) |> rules.actions
+    let player = state.Active
+    let actions = state |> Playing |> rules.actions
 
     actions
     |> List.indexed
@@ -17,13 +17,13 @@ let rec prompt (playing: Playing) =
 
     match System.Console.ReadLine() |> System.Int32.TryParse with
     | true, c when c < actions.Length -> actions |> List.item c
-    | _ -> playing |> prompt
+    | _ -> state |> prompt
 
-let rec run (playing: Playing) =
-    printfn "%A" playing.Board
+let rec run state =
+    printfn "%A" state.Board
     printfn ""
 
-    playing.Players
+    state.Players
     |> Map.iter (fun player ps ->
         let tiles =
             ps.Tiles
@@ -34,9 +34,9 @@ let rec run (playing: Playing) =
 
         printfn "[%03d] %s %s" ps.Score player.Name tiles)
 
-    playing
+    state
     |> prompt
-    |> fun action -> (Playing playing) |> rules.play action
+    |> fun action -> state |> Playing |> rules.play action
     |> function
         | Error err -> printfn "Error: %A" err
         | Ok state' ->
