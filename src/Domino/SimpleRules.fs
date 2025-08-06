@@ -1,25 +1,21 @@
 module Domino.SimpleRules
 
 type Action =
-    | AddPlayer of Player
-    | StartGame
+    | StartGame of Player list
     | Lead of Tile
     | Attach of Tile * Tile
 
 type Event =
-    | PlayerAdded of Player
-    | GameStarted
+    | GameStarted of Player list
     | TilesShuffled
     | RoundStarted
 
 type Error = unit
 
 type State =
-    | Waiting of Waiting
+    | Waiting
     | Playing of Playing
     | Finished
-
-and Waiting = { Players: Set<Player> }
 
 and Playing =
     { Players: Map<Player, PlayerState>
@@ -59,35 +55,23 @@ let deal players tiles =
 let decide: Decide =
     fun action state ->
         match state, action with
-        | Waiting waiting, AddPlayer player ->
-            match waiting.Players |> Set.contains player with
-            | true -> Error()
-            | false -> Ok [ PlayerAdded player ]
-
-        | Waiting waiting, StartGame -> Ok [ GameStarted; TilesShuffled; RoundStarted ]
+        | Waiting, StartGame players ->
+            // XXX: check player count, unique names, etc.
+            Ok [ GameStarted players; TilesShuffled; RoundStarted ]
 
         | _ -> Error()
 
 let evolve: Evolve =
     fun state event ->
+        printfn "Evolving state with event: %A" event
+
         match state, event with
-        | Waiting waiting, PlayerAdded player ->
-            Waiting
-                { waiting with
-                    Players = waiting.Players |> Set.add player }
-
-        | Waiting waiting, GameStarted ->
-            let players =
-                waiting.Players
-                |> Set.toList
-                |> List.map (fun p -> p, { Tiles = []; Score = 0 })
-                |> Map.ofList
-
-            printfn "Starting game with players: %A" (players |> Map.keys)
+        | Waiting, GameStarted players ->
+            printfn "Starting game with players: %A" players
 
             Playing
-                { Players = players
-                  Active = waiting.Players |> Set.toList |> List.head
+                { Players = players |> List.map (fun p -> p, { Tiles = []; Score = 0 }) |> Map.ofList
+                  Active = players |> List.head
                   Board = Empty
                   Tiles = [] }
 
@@ -121,10 +105,9 @@ let evolve: Evolve =
 type Impl() =
     interface Rules<State, Action> with
         member _.start players =
-            let state = { Players = Set.empty } |> Waiting
-            let actions = players |> List.map AddPlayer
+            let state = Waiting
 
-            printfn "Actions to start: %A" actions
+            let actions = players |> StartGame |> List.singleton
 
             (state, actions)
             ||> List.fold (fun state action ->
@@ -134,13 +117,11 @@ type Impl() =
                 match events with
                 | Error _ -> state
                 | Ok events -> (state, events) ||> List.fold evolve)
-            |> fun state ->
-                // use evolve to start the game
-                GameStarted |> evolve state |> Ok
+            |> Ok
 
         member _.actions state =
             match state with
-            | Waiting waiting -> []
+            | Waiting -> []
             | Playing playing -> [] // Define actions for playing state
             | Finished -> [] // No actions available in finished state
 
