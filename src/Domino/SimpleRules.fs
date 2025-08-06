@@ -10,14 +10,16 @@ type Event =
     | GameStarted
     | PlayerAdded of Player
     | TilesShuffled
-    | RoundStarted
 
 type Error = unit
 
 type State =
     | Waiting of Player list
+    | Starting of Starting
     | Playing of Playing
     | Finished
+
+and Starting = { Players: Map<Player, PlayerState> }
 
 and Playing =
     { Players: Map<Player, PlayerState>
@@ -61,45 +63,45 @@ let decide: Decide =
         | Waiting [], StartGame -> Error()
         | Waiting players, StartGame ->
             // XXX: check player count, unique names, etc.
-            Ok [ GameStarted; TilesShuffled; RoundStarted ]
+            Ok [ GameStarted; TilesShuffled ]
 
         | _ -> Error()
 
 let evolve: Evolve =
     fun state event ->
+        printfn "--- Evolving state with event: %A" event
+
         match state, event with
         | Waiting players, PlayerAdded player -> Waiting(player :: players)
         | Waiting players, GameStarted ->
-            Playing
-                { Players = players |> List.map (fun p -> p, { Tiles = []; Score = 0 }) |> Map.ofList
-                  Active = players |> List.head
-                  Board = Empty
-                  Tiles = [] }
-
-        | Playing playing, TilesShuffled ->
+            Starting { Players = players |> List.map (fun p -> p, { Tiles = []; Score = 0 }) |> Map.ofList }
+        // Playing
+        //     { Players = players |> List.map (fun p -> p, { Tiles = []; Score = 0 }) |> Map.ofList
+        //       Active = players |> List.head
+        //       Board = Empty
+        //       Tiles = [] }
+        | Starting starting, TilesShuffled ->
             let hands, boneyard =
                 tiles
                 |> List.ofSeq
                 |> List.randomShuffle
-                |> deal (playing.Players |> Map.keys |> List.ofSeq)
+                |> deal (starting.Players |> Map.keys |> List.ofSeq)
 
             let players =
-                playing.Players
+                starting.Players
                 |> Map.map (fun player _ -> { Tiles = hands.[player]; Score = 0 })
 
-            Playing
-                { playing with
-                    Players = players
-                    Tiles = boneyard }
-
-        | Playing playing, RoundStarted ->
             let active =
-                playing.Players
+                players
                 |> Map.toList
                 |> List.maxBy (fun (_, ps) -> ps.Tiles |> List.map weight |> List.max)
                 |> fst
 
-            Playing { playing with Active = active }
+            Playing
+                { Players = players
+                  Active = active
+                  Board = Empty
+                  Tiles = boneyard }
 
         | _ -> failwithf "Unexpected event %A in state %A" event state
 
@@ -122,6 +124,7 @@ type Impl() =
         member _.actions state =
             match state with
             | Waiting players -> [ StartGame ]
+            | Starting starting -> [] // Define actions for starting state
             | Playing playing -> [] // Define actions for playing state
             | Finished -> [] // No actions available in finished state
 
